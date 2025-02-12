@@ -182,9 +182,9 @@ __ALIGN_BEGIN uint8_t const USBD_FS_DeviceDesc [USB_LEN_DEV_DESC] __ALIGN_END =
 #endif /* defined ( __ICCARM__ ) */
 
 /** USB lang identifier descriptor. */
-__ALIGN_BEGIN uint8_t const USBD_LangIDDesc [USB_LEN_LANGID_STR_DESC] __ALIGN_END =
+__ALIGN_BEGIN uint8_t const USBD_LangIDDesc [] __ALIGN_END =
 {
-     USB_LEN_LANGID_STR_DESC,
+     4,
      USB_DESC_TYPE_STRING,
      LOBYTE(USBD_LANGID_STRING),
      HIBYTE(USBD_LANGID_STRING)
@@ -199,9 +199,10 @@ __ALIGN_BEGIN uint8_t const USBD_LangIDDesc [USB_LEN_LANGID_STR_DESC] __ALIGN_EN
 #if defined ( __ICCARM__ ) /*!< IAR Compiler */
   #pragma data_alignment=4
 #endif
-__ALIGN_BEGIN uint8_t const USBD_StringSerial [USB_SIZ_STRING_SERIAL] __ALIGN_END = {
-  USB_SIZ_STRING_SERIAL,
+__ALIGN_BEGIN uint8_t const USBD_StringSerial [] __ALIGN_END = {
+  2+8,
   USB_DESC_TYPE_STRING,
+  'A','A','A','A','A','A','A','A',
 };
 
 /**
