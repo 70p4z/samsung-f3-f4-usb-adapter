@@ -166,12 +166,17 @@ int main(void)
     if (LL_USART_IsActiveFlag_TXE(USART_INTF)) {
       if (usb_rx_len 
         && usb_rx_fwd_off < usb_rx_len) {
+        uint32_t timeout = uwTick + 1000;
         // transmission will occur on RS485
         HAL_GPIO_WritePin(TXEN_GPIO_Port, TXEN_Pin, GPIO_PIN_SET);
         // send byte
         LL_USART_TransmitData8(USART_INTF, usb_rx[usb_rx_fwd_off++]);
         // wait transmission ended
-        while (!LL_USART_IsActiveFlag_TC(USART_INTF)) { }
+        while (!LL_USART_IsActiveFlag_TC(USART_INTF)) { 
+          if (uwTick - timeout < 0x80000000U) {
+            break;
+          }
+        }
         // transmission ended, back to RX on RS485
         HAL_GPIO_WritePin(TXEN_GPIO_Port, TXEN_Pin, GPIO_PIN_RESET);
         // prepare reception of next usb chunk
@@ -179,6 +184,19 @@ int main(void)
           USBD_CDC_ReceivePacket(&hUsbDeviceFS);
         }
       }
+    }
+
+    if (LL_USART_IsActiveFlag_ORE(USART_INTF)) {
+      LL_USART_ClearFlag_ORE(USART_INTF);
+    }
+    if (LL_USART_IsActiveFlag_NE(USART_INTF)) {
+      LL_USART_ClearFlag_NE(USART_INTF);
+    }
+    if (LL_USART_IsActiveFlag_FE(USART_INTF)) {
+      LL_USART_ClearFlag_FE(USART_INTF);
+    }
+    if (LL_USART_IsActiveFlag_PE(USART_INTF)) {
+      LL_USART_ClearFlag_PE(USART_INTF);
     }
 
     /* USER CODE BEGIN 3 */
