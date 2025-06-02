@@ -23,8 +23,15 @@
 #define HOST_USB
 #define USART_INTF USART2
 #define TXEN_Pin GPIO_PIN_1
-#define TXEN_GPIO_Port GPIOA
+#define TXEN_Port GPIOA
 
+#define LEDTX_Pin GPIO_PIN_7
+#define LEDTX_Port GPIOB
+
+#define LEDRX_Pin GPIO_PIN_6
+#define LEDRX_Port GPIOB
+
+#define LED_TIMEOUT 100
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -126,7 +133,8 @@ int main(void)
   usb_tx_lastadd=0;
   // nothing received so far
   usb_rx_len=usb_rx_fwd_off=0;
-
+  uint32_t ledtx_timeout=0;
+  uint32_t ledrx_timeout=0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -140,6 +148,10 @@ int main(void)
       uint8_t b = LL_USART_ReceiveData8(USART_INTF);
       // and send it
       usb_tx[usb_tx_off++] = b;
+
+      HAL_GPIO_WritePin(LEDRX_Port, LEDRX_Pin, GPIO_PIN_SET);
+      ledrx_timeout = uwTick + LED_TIMEOUT;
+      if (!ledrx_timeout) ledrx_timeout++;
       
       if (usb_tx_off==sizeof(usb_tx)) {
         // immediate sending
@@ -166,9 +178,14 @@ int main(void)
     if (LL_USART_IsActiveFlag_TXE(USART_INTF)) {
       if (usb_rx_len 
         && usb_rx_fwd_off < usb_rx_len) {
+        
+        HAL_GPIO_WritePin(LEDTX_Port, LEDTX_Pin, GPIO_PIN_SET);
+        ledtx_timeout = uwTick + LED_TIMEOUT;
+        if (!ledtx_timeout) ledtx_timeout++;
+
         uint32_t timeout = uwTick + 1000;
         // transmission will occur on RS485
-        HAL_GPIO_WritePin(TXEN_GPIO_Port, TXEN_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(TXEN_Port, TXEN_Pin, GPIO_PIN_SET);
         // send byte
         LL_USART_TransmitData8(USART_INTF, usb_rx[usb_rx_fwd_off++]);
         // wait transmission ended
@@ -178,12 +195,22 @@ int main(void)
           }
         }
         // transmission ended, back to RX on RS485
-        HAL_GPIO_WritePin(TXEN_GPIO_Port, TXEN_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(TXEN_Port, TXEN_Pin, GPIO_PIN_RESET);
         // prepare reception of next usb chunk
         if (usb_rx_fwd_off==usb_rx_len) {
           USBD_CDC_ReceivePacket(&hUsbDeviceFS);
         }
       }
+    }
+
+    if (ledrx_timeout &&  uwTick - ledrx_timeout < 0x80000000UL) {
+      ledrx_timeout = 0;
+      HAL_GPIO_WritePin(LEDRX_Port, LEDRX_Pin, GPIO_PIN_RESET);
+    }
+
+    if (ledtx_timeout &&  uwTick - ledtx_timeout < 0x80000000UL) {
+      ledtx_timeout = 0;
+      HAL_GPIO_WritePin(LEDTX_Port, LEDTX_Pin, GPIO_PIN_RESET);
     }
 
     if (LL_USART_IsActiveFlag_ORE(USART_INTF)) {
@@ -293,18 +320,32 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
-  //CONCAT(__HAL_RCC_, CONCAT(TXEN_GPIO_Port, _CLK_ENABLE)) ();
+  //CONCAT(__HAL_RCC_, CONCAT(TXEN_Port, _CLK_ENABLE)) ();
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(TXEN_GPIO_Port, TXEN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(TXEN_Port, TXEN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LEDTX_Port, LEDTX_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LEDRX_Port, LEDRX_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PA1 */
   GPIO_InitStruct.Pin = TXEN_Pin;
+  GPIO_InitStruct.Mode = USART_PIN_MODE;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(TXEN_Port, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = LEDTX_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(TXEN_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(LEDTX_Port, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = LEDRX_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LEDRX_Port, &GPIO_InitStruct);
 
 }
 

@@ -32,6 +32,7 @@ extern "C" {
 
 #define USART_PIN_MODE GPIO_MODE_AF_PP
 //#define USART_PIN_MODE GPIO_MODE_AF_OD // on future R2 pcb
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
