@@ -83,7 +83,7 @@
 
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
-
+extern uint32_t upgrade_mode;
 /* USER CODE END PRIVATE_VARIABLES */
 
 /**
@@ -140,6 +140,7 @@ void main_cdc_init(void);
 static int8_t CDC_Init_FS(void)
 {
   /* USER CODE BEGIN 3 */
+  upgrade_mode = 0;
 
   main_cdc_init();
 
@@ -208,7 +209,13 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   /* 6      | bDataBits  |   1   | Number Data bits (5, 6, 7, 8 or 16).          */
   /*******************************************************************************/
     case CDC_SET_LINE_CODING:
-
+    // OTO TODO: interpret the baudrate as a channel identifier:
+    // - data to/from the hardware RS485
+    // - data to/from the MCU memory (firmware upgrade)
+    if (length >=4 ) {
+      #define LE4(b) (((uint32_t)(b)[3] << 24) | ((uint32_t)(b)[2] << 16) | ((uint32_t)(b)[1] << 8) | (uint32_t)(b)[0])
+      upgrade_mode = LE4(pbuf) == 230400;
+    }
     break;
 
     case CDC_GET_LINE_CODING:

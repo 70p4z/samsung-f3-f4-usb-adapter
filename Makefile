@@ -161,7 +161,7 @@ LIBDIR =
 LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
 # default action: build all
-all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
+all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin #$(BUILD_DIR)/$(TARGET).dfu
 
 
 #######################################
@@ -189,7 +189,13 @@ $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(BIN) $< $@	
-	
+
+#$(BUILD_DIR)/%.dfu: $(BUILD_DIR)/%.hex | $(BUILD_DIR)
+#	hex2dfu --hex=$< --dfu=$@
+
+dfu: $(BUILD_DIR)/$(TARGET).bin | $(BUILD_DIR)
+	dfu-util -a 0 -s 0x08000000:leave -D $(BUILD_DIR)/$(TARGET).bin
+
 $(BUILD_DIR):
 	mkdir $@		
 

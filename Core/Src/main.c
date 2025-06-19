@@ -67,6 +67,7 @@ static void MX_USART_UART_Init(void);
 
 #define USB_RX_LATENCY_MS 20
 
+uint32_t upgrade_mode;
 uint8_t usb_rx[CDC_DATA_FS_MAX_PACKET_SIZE];
 uint32_t usb_rx_len;
 uint32_t usb_rx_fwd_off;
@@ -133,8 +134,12 @@ int main(void)
   usb_tx_lastadd=0;
   // nothing received so far
   usb_rx_len=usb_rx_fwd_off=0;
-  uint32_t ledtx_timeout=0;
-  uint32_t ledrx_timeout=0;
+
+  HAL_GPIO_WritePin(LEDTX_Port, LEDTX_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LEDRX_Port, LEDRX_Pin, GPIO_PIN_SET);
+
+  uint32_t ledtx_timeout = uwTick + LED_TIMEOUT;
+  uint32_t ledrx_timeout = uwTick + LED_TIMEOUT;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -182,6 +187,16 @@ int main(void)
         HAL_GPIO_WritePin(LEDTX_Port, LEDTX_Pin, GPIO_PIN_SET);
         ledtx_timeout = uwTick + LED_TIMEOUT;
         if (!ledtx_timeout) ledtx_timeout++;
+
+        if (upgrade_mode) {
+          WRITE_REG(FLASH->KEYR, FLASH_KEY1);
+          WRITE_REG(FLASH->KEYR, FLASH_KEY2);
+          /* Only bank1 will be erased*/
+          SET_BIT(FLASH->CR, FLASH_CR_MER);
+          SET_BIT(FLASH->CR, FLASH_CR_STRT);
+          FLASH_WaitForLastOperation((uint32_t)FLASH_TIMEOUT_VALUE);
+          NVIC_SystemReset();
+        }
 
         uint32_t timeout = uwTick + 1000;
         // transmission will occur on RS485
@@ -322,6 +337,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   //CONCAT(__HAL_RCC_, CONCAT(TXEN_Port, _CLK_ENABLE)) ();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(TXEN_Port, TXEN_Pin, GPIO_PIN_RESET);
