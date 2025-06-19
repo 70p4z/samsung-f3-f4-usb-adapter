@@ -193,8 +193,9 @@ $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 #$(BUILD_DIR)/%.dfu: $(BUILD_DIR)/%.hex | $(BUILD_DIR)
 #	hex2dfu --hex=$< --dfu=$@
 
-dfu: $(BUILD_DIR)/$(TARGET).bin | $(BUILD_DIR)
-	dfu-util -a 0 -s 0x08000000:leave -D $(BUILD_DIR)/$(TARGET).bin
+dfu: all | $(BUILD_DIR)
+	#dfu-util -a 0 -s 0x08000000:leave -D $(BUILD_DIR)/$(TARGET).bin
+	dfu-util -S FFFFFFFEFFFF -a 0 -s 0x08000000:leave -D build/f3f4-usb-adapter.bin
 
 $(BUILD_DIR):
 	mkdir $@		

@@ -68,6 +68,7 @@ static void MX_USART_UART_Init(void);
 #define USB_RX_LATENCY_MS 20
 
 uint32_t upgrade_mode;
+uint32_t usb_configured;
 uint8_t usb_rx[CDC_DATA_FS_MAX_PACKET_SIZE];
 uint32_t usb_rx_len;
 uint32_t usb_rx_fwd_off;
@@ -91,6 +92,7 @@ int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 }
 
 void main_cdc_init(void) {
+  usb_configured = 1;
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, usb_rx);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
 }
@@ -126,6 +128,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART_UART_Init();
+  usb_configured = 0;
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
@@ -158,21 +161,26 @@ int main(void)
       ledrx_timeout = uwTick + LED_TIMEOUT;
       if (!ledrx_timeout) ledrx_timeout++;
       
-      if (usb_tx_off==sizeof(usb_tx)) {
+      if (usb_tx_off==sizeof(usb_tx)
+        && usb_configured) {
         // immediate sending
         memmove(usb_tx_bg, usb_tx, usb_tx_off);
         USBD_CDC_SetTxBuffer(&hUsbDeviceFS, usb_tx_bg, usb_tx_off);
         USBD_CDC_TransmitPacket(&hUsbDeviceFS);
         usb_tx_off=0;
+        usb_tx_lastadd=0;
       }
       else {
         // send after timeout (not to make the usb too busy)
         usb_tx_lastadd=uwTick+USB_RX_LATENCY_MS;
+        if (usb_tx_lastadd == 0) usb_tx_lastadd++;
       }
     }
 
     // expired time to fwd the received data?
-    if (usb_tx_off && uwTick - usb_tx_lastadd < 0x80000000U) {
+    if (usb_tx_off && usb_tx_lastadd && uwTick - usb_tx_lastadd < 0x80000000U
+      && usb_configured) {
+      usb_tx_lastadd = 0;
       memmove(usb_tx_bg, usb_tx, usb_tx_off);
       USBD_CDC_SetTxBuffer(&hUsbDeviceFS, usb_tx_bg, usb_tx_off);
       USBD_CDC_TransmitPacket(&hUsbDeviceFS);
@@ -346,8 +354,8 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : PA1 */
   GPIO_InitStruct.Pin = TXEN_Pin;
-  GPIO_InitStruct.Mode = USART_PIN_MODE;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = TXEN_PIN_MODE;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(TXEN_Port, &GPIO_InitStruct);
 

@@ -30,8 +30,11 @@ extern "C" {
 #include "stm32f0xx_hal.h"
 #include "stm32f0xx_ll_usart.h"
 
-#define USART_PIN_MODE GPIO_MODE_AF_PP
-//#define USART_PIN_MODE GPIO_MODE_AF_OD // on future R2 pcb
+//#define TXEN_PIN_MODE GPIO_MODE_OUTPUT_PP
+#define TXEN_PIN_MODE GPIO_MODE_OUTPUT_OD // on future R2 pcb
+
+//#define USART_PIN_MODE GPIO_MODE_AF_PP
+#define USART_PIN_MODE GPIO_MODE_AF_OD // on future R2 pcb
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
