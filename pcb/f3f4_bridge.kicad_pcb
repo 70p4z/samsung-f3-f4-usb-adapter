@@ -1479,7 +1479,7 @@
 				)
 			)
 		)
-		(property "Value" "3k"
+		(property "Value" "0"
 			(at -0.000001 1.429999 90)
 			(layer "F.Fab")
 			(uuid "25c82d09-35f5-42a6-9eb7-f3058e7078fd")
@@ -1905,7 +1905,7 @@
 				)
 			)
 		)
-		(property "Value" "47k"
+		(property "Value" "50k"
 			(at 0.000001 1.429999 90)
 			(layer "F.Fab")
 			(uuid "9d96baa4-6721-4d50-8abc-4912dc76a362")
@@ -4383,7 +4383,7 @@
 		(descr "LED SMD 0603 (1608 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator")
 		(tags "LED")
 		(property "Reference" "D2"
-			(at 0.559999 -1.189999 90)
+			(at 2.069999 -1.189999 90)
 			(layer "F.SilkS")
 			(uuid "65a3f140-b969-4b88-a78a-13dda7687e7f")
 			(effects
@@ -5310,7 +5310,7 @@
 		(path "/60f41281-f924-4357-9226-e1cf1665ea23")
 		(sheetname "/")
 		(sheetfile "f3f4_bridge.kicad_sch")
-		(attr smd exclude_from_pos_files exclude_from_bom)
+		(attr smd exclude_from_pos_files)
 		(fp_line
 			(start 3.849999 3.749999)
 			(end 3.850001 3.300002)
@@ -7929,6 +7929,28 @@
 		(fill no)
 		(layer "Edge.Cuts")
 		(uuid "20f41d9a-86f4-4291-b43a-c5a979accecc")
+	)
+	(gr_text "TX"
+		(at 40.05 44.16 180)
+		(layer "F.SilkS")
+		(uuid "531d5dd8-7cad-409a-8d2e-dffb4f9adc6f")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.1)
+			)
+		)
+	)
+	(gr_text "RX"
+		(at 41.75 44.18 180)
+		(layer "F.SilkS")
+		(uuid "a81a88aa-4d62-4590-a5c8-fd7857050038")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.1)
+			)
+		)
 	)
 	(gr_text "GND"
 		(at 50.12 41.82 270)

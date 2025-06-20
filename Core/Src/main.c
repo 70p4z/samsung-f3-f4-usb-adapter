@@ -25,10 +25,10 @@
 #define TXEN_Pin GPIO_PIN_1
 #define TXEN_Port GPIOA
 
-#define LEDTX_Pin GPIO_PIN_7
+#define LEDTX_Pin GPIO_PIN_6
 #define LEDTX_Port GPIOB
 
-#define LEDRX_Pin GPIO_PIN_6
+#define LEDRX_Pin GPIO_PIN_7
 #define LEDRX_Port GPIOB
 
 #define LED_TIMEOUT 100
