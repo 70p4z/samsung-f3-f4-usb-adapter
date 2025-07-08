@@ -194,8 +194,13 @@ $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 #	hex2dfu --hex=$< --dfu=$@
 
 dfu: all | $(BUILD_DIR)
-	#dfu-util -a 0 -s 0x08000000:leave -D $(BUILD_DIR)/$(TARGET).bin
 	dfu-util -S FFFFFFFEFFFF -a 0 -s 0x08000000:leave -D build/f3f4-usb-adapter.bin
+
+pydfu: all | $(BUILD_DIR)
+	pyfu-usb -d 0483:df11 -D build/f3f4-usb-adapter.bin -a 0x08000000 -v -v -v
+
+st-flash: all | $(BUILD_DIR)
+	st-flash --reset --connect-under-reset write build/f3f4-usb-adapter.bin 0x08000000
 
 $(BUILD_DIR):
 	mkdir $@		
